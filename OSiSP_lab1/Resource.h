@@ -11,7 +11,26 @@
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
 #define IDI_OSISP_LAB1			107
-#define IDI_SMALL				108
+#define IDM_OPEN				111
+#define IDM_SAVE				112
+#define IDM_PRINT				113
+#define IDM_PEN					114
+#define IDM_TEXT				115
+#define IDM_LINE				116
+#define IDM_POLYLINE			117
+#define IDM_ELLIPSE				119
+#define IDM_P3					120
+#define IDM_P4					121
+#define IDM_P5					122
+#define IDM_P6					123
+#define IDM_COLORPEN			124
+#define IDM_COLORBRUSH			125
+#define IDM_W1					126
+#define IDM_W2					127
+#define IDM_W3					128
+#define IDM_W4					129
+#define IDM_CLEAR				130
+#define IDM_RECTANGLE			108
 #define IDC_OSISP_LAB1			109
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
