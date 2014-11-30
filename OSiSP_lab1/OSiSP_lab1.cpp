@@ -3,25 +3,12 @@
 
 #include "stdafx.h"
 #include "OSiSP_lab1.h"
-#include <windows.h>
-#include <stdlib.h>
-#include <string.h>
-#include <tchar.h>
-#include <math.h>
-#include <commdlg.h>
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
-static WCHAR textSymbols[MAX_LOADSTRING] = {};
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
-BOOL fPolyline = FALSE;
-BOOL fDraw = FALSE;
-BOOL fAllocate = FALSE;
-BOOL fPan = FALSE;
-int dx, dy;
-POINTS ptsBegin, pts;
-POINT ptPrevious = {0};
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
 // Forward declarations of functions included in this code module:
@@ -41,7 +28,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	// TODO: Place code here.
 	MSG msg;
 	HACCEL hAccelTable;
-	BOOL fTrack = FALSE;
 
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -127,8 +113,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-
+//
+//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
+//
+//  PURPOSE:  Processes messages for the main window.
+//
+//  WM_COMMAND	- process the application menu
+//  WM_PAINT	- Paint the main window
+//  WM_DESTROY	- post a quit message and return
+//
+//
 HPEN hPen = NULL;
+BOOL fDraw= FALSE;
+POINT ptPrevious = {0};
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
@@ -139,7 +136,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message) 
     {
     case WM_INITDIALOG:
-        hPen = CreatePen(PS_SOLID, 3, RGB(128, 0, 0));
+       hPen = CreatePen(PS_SOLID, 3, RGB(128, 0, 0));
         //bRet = TRUE;
         break;
     case WM_COMMAND:
@@ -156,6 +153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if(fDraw) 
         { 
             hdc = GetDC(hWnd); 
+			SelectObject(hdc,hPen);
             MoveToEx(hdc, ptPrevious.x, ptPrevious.y, NULL); 
             LineTo(hdc, LOWORD(lParam), HIWORD(lParam)); 
             ReleaseDC(hWnd, hdc);
@@ -166,6 +164,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (fDraw) 
         { 
             hdc = GetDC(hWnd); 
+			SelectObject(hdc,hPen);
             MoveToEx(hdc, ptPrevious.x, ptPrevious.y, NULL); 
             LineTo  
             (
@@ -179,23 +178,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_QUIT:
     case WM_CLOSE:
     case WM_DESTROY:
-        PostQuitMessage(0);
-        EndDialog(hWnd, LOWORD(wParam));
-        break;
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
     }
-    if(bCmd)
-    {
-        switch (wmId)
+    switch (wmId)
         {
             case IDM_ABOUT: 
 		        DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
             case IDM_EXIT:
-                SendMessage(hWnd,WM_DESTROY,wParam,lParam);
+                DestroyWindow(hWnd);
                 break;
         }
-    }
-    return bRet;
+    
+    return 0;
 }
 
 // Message handler for about box.
