@@ -3,12 +3,25 @@
 
 #include "stdafx.h"
 #include "OSiSP_lab1.h"
-
+#include <windows.h>
+#include <stdlib.h>
+#include <string.h>
+#include <tchar.h>
+#include <math.h>
+#include <commdlg.h>
 #define MAX_LOADSTRING 100
 
 // Global Variables:
+static WCHAR textSymbols[MAX_LOADSTRING] = {};
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
+BOOL fPolyline = FALSE;
+BOOL fDraw = FALSE;
+BOOL fAllocate = FALSE;
+BOOL fPan = FALSE;
+int dx, dy;
+POINTS ptsBegin, pts;
+POINT ptPrevious = {0};
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 
 // Forward declarations of functions included in this code module:
@@ -28,6 +41,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	// TODO: Place code here.
 	MSG msg;
 	HACCEL hAccelTable;
+	BOOL fTrack = FALSE;
 
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -78,7 +92,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
 	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_OSISP_LAB1);
 	wcex.lpszClassName	= szWindowClass;
-	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+//	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 	return RegisterClassEx(&wcex);
 }
@@ -113,54 +127,75 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE:  Processes messages for the main window.
-//
-//  WM_COMMAND	- process the application menu
-//  WM_PAINT	- Paint the main window
-//  WM_DESTROY	- post a quit message and return
-//
-//
+
+HPEN hPen = NULL;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	int wmId, wmEvent;
-	PAINTSTRUCT ps;
-	HDC hdc;
-
-	switch (message)
-	{
-	case WM_COMMAND:
-		wmId    = LOWORD(wParam);
-		wmEvent = HIWORD(wParam);
-		// Parse the menu selections:
-		switch (wmId)
-		{
-		case IDM_ABOUT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-			break;
-		case IDM_OPEN:
-			break;
-		case IDM_EXIT:
-			DestroyWindow(hWnd);
-			break;
-		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
-		}
-		break;
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code here...
-		EndPaint(hWnd, &ps);
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
-	return 0;
+    HDC hdc;
+    BOOL bRet = FALSE;
+    BOOL bCmd = FALSE;
+    int wmId    = LOWORD(wParam); 
+    int wmEvent = HIWORD(wParam); 
+    switch (message) 
+    {
+    case WM_INITDIALOG:
+        hPen = CreatePen(PS_SOLID, 3, RGB(128, 0, 0));
+        //bRet = TRUE;
+        break;
+    case WM_COMMAND:
+        // Parse the menu selections:
+        bCmd = TRUE;
+        bRet = TRUE;
+        break;
+    case WM_LBUTTONDOWN: 
+        fDraw = TRUE; 
+        ptPrevious.x = LOWORD(lParam); 
+        ptPrevious.y = HIWORD(lParam); 
+        break;
+    case WM_LBUTTONUP: 
+        if(fDraw) 
+        { 
+            hdc = GetDC(hWnd); 
+            MoveToEx(hdc, ptPrevious.x, ptPrevious.y, NULL); 
+            LineTo(hdc, LOWORD(lParam), HIWORD(lParam)); 
+            ReleaseDC(hWnd, hdc);
+            fDraw = FALSE; 
+        } 
+        break;
+    case WM_MOUSEMOVE: 
+        if (fDraw) 
+        { 
+            hdc = GetDC(hWnd); 
+            MoveToEx(hdc, ptPrevious.x, ptPrevious.y, NULL); 
+            LineTo  
+            (
+                hdc, 
+                ptPrevious.x = LOWORD(lParam), 
+                ptPrevious.y = HIWORD(lParam)
+            ); 
+            ReleaseDC(hWnd, hdc); 
+        } 
+        break;
+    case WM_QUIT:
+    case WM_CLOSE:
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        EndDialog(hWnd, LOWORD(wParam));
+        break;
+    }
+    if(bCmd)
+    {
+        switch (wmId)
+        {
+            case IDM_ABOUT: 
+		        DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                break;
+            case IDM_EXIT:
+                SendMessage(hWnd,WM_DESTROY,wParam,lParam);
+                break;
+        }
+    }
+    return bRet;
 }
 
 // Message handler for about box.
